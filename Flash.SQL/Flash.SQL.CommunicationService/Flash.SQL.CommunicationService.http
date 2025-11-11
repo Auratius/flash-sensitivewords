@@ -1,0 +1,6 @@
+@Flash.SQL.CommunicationService_HostAddress = http://localhost:5057
+
+GET {{Flash.SQL.CommunicationService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
