@@ -35,8 +35,20 @@ flash-sensitivewords/
 │   ├── SensitiveWords.Tests.Unit/       # Unit Tests (53 tests, mocked dependencies)
 │   ├── SensitiveWords.Tests.Integration/# Integration Tests (11 tests, WebApplicationFactory)
 │   └── Database/Scripts/                # SQL migration scripts and stored procedures
-├── SpecialScripts/
-│   └── check-coverage.bat               # Automated test coverage script
+├── SpecialScripts/                       # Developer helper scripts
+│   ├── setup-database.bat               # Automated database setup
+│   ├── reset-database.bat               # Drop and recreate database
+│   ├── run-api.bat                      # Build and run API
+│   ├── clean-build.bat                  # Clean build with validation
+│   ├── run-tests.bat                    # Interactive test runner
+│   ├── validate-project.bat             # Pre-commit validation
+│   ├── check-coverage.bat               # Code coverage analysis
+│   ├── generate-migration.bat           # Create migration scripts
+│   ├── backup-database.bat              # Database backup utility
+│   ├── check-health.bat                 # System health check
+│   ├── install-tools.bat                # Install dev tools
+│   ├── view-logs.bat                    # Log viewer utility
+│   └── seed-test-data.bat               # Add test data
 └── TestResults/                         # Generated coverage reports
     └── CoverageReport/                  # HTML coverage report
 ```
@@ -50,27 +62,202 @@ flash-sensitivewords/
 - Visual Studio 2022 / VS Code / Rider (optional)
 - ReportGenerator tool (for coverage reports): `dotnet tool install -g dotnet-reportgenerator-globaltool`
 
-### Local Development
+### Local Development (Using Helper Scripts - Recommended)
 
 ```bash
-# 1. Setup database
-cd SensitiveWords.MicroService/Database/Scripts
-sqlcmd -S localhost\SQLEXPRESS -i 01_CreateDatabase.sql
-sqlcmd -S localhost\SQLEXPRESS -d SensitiveWordsDb -i 02_CreateTables.sql
-sqlcmd -S localhost\SQLEXPRESS -d SensitiveWordsDb -i 03_CreateStoredProcedures.sql
-sqlcmd -S localhost\SQLEXPRESS -d SensitiveWordsDb -i 04_SeedData.sql
+# 1. Install development tools
+.\SpecialScripts\install-tools.bat
 
-# 2. Build and run
-cd ../SensitiveWords.API
-dotnet restore
-dotnet build
-dotnet run
+# 2. Check system health
+.\SpecialScripts\check-health.bat
+
+# 3. Setup database (automated)
+.\SpecialScripts\setup-database.bat
+
+# 4. Run the API
+.\SpecialScripts\run-api.bat
 ```
 
 **Access:**
 - Main API: https://localhost:64725 (or http://localhost:64726)
 - Swagger UI: https://localhost:64725/swagger
 - Health Check: https://localhost:64725/health
+
+### Manual Setup (Alternative)
+
+```bash
+# 1. Setup database manually
+cd SensitiveWords.MicroService/Database/Scripts
+sqlcmd -S localhost\SQLEXPRESS -i 01_CreateDatabase.sql
+sqlcmd -S localhost\SQLEXPRESS -d SensitiveWordsDb -i 02_CreateTables.sql
+sqlcmd -S localhost\SQLEXPRESS -d SensitiveWordsDb -i 04_CreateStoredProcedures.sql
+sqlcmd -S localhost\SQLEXPRESS -d SensitiveWordsDb -i 03_SeedData.sql
+
+# 2. Build and run manually
+cd ../SensitiveWords.API
+dotnet restore
+dotnet build
+dotnet run
+```
+
+## Developer Helper Scripts
+
+The `SpecialScripts/` folder contains automated scripts to streamline development workflows:
+
+### Database Management
+
+**setup-database.bat** - Automated database setup
+- Creates database, tables, stored procedures, and seeds initial data
+- Validates connectivity before starting
+- Runs all SQL scripts in correct order
+```bash
+.\SpecialScripts\setup-database.bat
+```
+
+**reset-database.bat** - Complete database reset
+- Drops existing database and recreates it from scratch
+- Useful for clean testing or resolving database issues
+- **Warning:** Deletes all data
+```bash
+.\SpecialScripts\reset-database.bat
+```
+
+**backup-database.bat** - Create timestamped backups
+- Backs up database to `DatabaseBackups/` folder
+- Includes timestamp in filename
+- Shows backup size and location
+```bash
+.\SpecialScripts\backup-database.bat
+```
+
+**generate-migration.bat** - Create migration scripts
+- Generates timestamped SQL migration file with template
+- Includes rollback script section
+- Opens file in notepad for editing
+```bash
+.\SpecialScripts\generate-migration.bat
+```
+
+**seed-test-data.bat** - Add test data
+- Multiple test data sets (SQL keywords, edge cases, performance data)
+- Interactive menu to choose data sets
+- Safe to run multiple times (handles duplicates)
+```bash
+.\SpecialScripts\seed-test-data.bat
+```
+
+### Build and Testing
+
+**clean-build.bat** - Clean build with validation
+- Removes bin/obj folders
+- Restores NuGet packages
+- Builds in Release mode
+- Optional quick test run
+```bash
+.\SpecialScripts\clean-build.bat
+```
+
+**run-tests.bat** - Interactive test runner
+- Unit tests only (fast)
+- Integration tests only
+- All tests with various verbosity levels
+- All tests with code coverage
+```bash
+.\SpecialScripts\run-tests.bat
+```
+
+**check-coverage.bat** - Code coverage analysis
+- Runs all tests with coverage collection
+- Generates HTML report with detailed statistics
+- Shows summary in console
+- Opens report in browser
+```bash
+.\SpecialScripts\check-coverage.bat
+```
+
+**validate-project.bat** - Pre-commit validation
+- Checks database connectivity
+- Builds solution
+- Runs all tests
+- Validates 85%+ code coverage
+- Checks project structure
+- Returns pass/fail status
+```bash
+.\SpecialScripts\validate-project.bat
+```
+
+### Runtime and Monitoring
+
+**run-api.bat** - Start the API
+- Checks database connectivity
+- Builds solution
+- Runs API with formatted output
+- Shows all access URLs
+```bash
+.\SpecialScripts\run-api.bat
+```
+
+**check-health.bat** - System health check
+- Validates .NET SDK installation
+- Checks SQL Server connectivity
+- Verifies database existence
+- Tests solution build
+- Checks required tools
+- Validates project structure
+- Tests API endpoints (if running)
+```bash
+.\SpecialScripts\check-health.bat
+```
+
+**view-logs.bat** - Log viewer utility
+- View latest log file
+- View all logs concatenated
+- Search logs by keyword
+- View errors only
+- Tail logs in real-time
+- Clear old logs
+```bash
+.\SpecialScripts\view-logs.bat
+```
+
+### Development Tools
+
+**install-tools.bat** - Install development tools
+- Installs reportgenerator (code coverage)
+- Installs dotnet-format (code formatting)
+- Installs dotnet-outdated (dependency updates)
+- Updates existing tools
+```bash
+.\SpecialScripts\install-tools.bat
+```
+
+### Recommended Workflow
+
+**First-time setup:**
+```bash
+.\SpecialScripts\install-tools.bat
+.\SpecialScripts\check-health.bat
+.\SpecialScripts\setup-database.bat
+.\SpecialScripts\run-api.bat
+```
+
+**Daily development:**
+```bash
+.\SpecialScripts\check-health.bat
+.\SpecialScripts\run-tests.bat
+```
+
+**Before committing:**
+```bash
+.\SpecialScripts\validate-project.bat
+```
+
+**Troubleshooting:**
+```bash
+.\SpecialScripts\check-health.bat
+.\SpecialScripts\view-logs.bat
+.\SpecialScripts\reset-database.bat
+```
 
 ## API Endpoints
 
