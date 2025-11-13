@@ -1,0 +1,75 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SensitiveWords.MicroService", "SensitiveWords.MicroService", "{83441EDA-3A0F-C791-BE9C-AAC58A9473A7}"
+	ProjectSection(SolutionItems) = preProject
+		SensitiveWords.MicroService\DEPLOYMENT.md = SensitiveWords.MicroService\DEPLOYMENT.md
+		SensitiveWords.MicroService\docker-compose.yml = SensitiveWords.MicroService\docker-compose.yml
+		SensitiveWords.MicroService\Dockerfile = SensitiveWords.MicroService\Dockerfile
+		SensitiveWords.MicroService\README.md = SensitiveWords.MicroService\README.md
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flash.SensitiveWords.API", "SensitiveWords.MicroService\SensitiveWords.API\Flash.SensitiveWords.API.csproj", "{728204E4-29EE-2497-7A79-F4C980211942}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flash.SensitiveWords.Application", "SensitiveWords.MicroService\SensitiveWords.Application\Flash.SensitiveWords.Application.csproj", "{D9FB4F05-F872-A8F7-9ED2-AA8200EA0AB8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flash.SensitiveWords.Domain", "SensitiveWords.MicroService\SensitiveWords.Domain\Flash.SensitiveWords.Domain.csproj", "{6DA345E2-8DA4-0828-165B-BEA40525105D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flash.SensitiveWords.Infrastructure", "SensitiveWords.MicroService\SensitiveWords.Infrastructure\Flash.SensitiveWords.Infrastructure.csproj", "{14F64C27-8251-1526-67F6-D4EE094322A6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flash.SensitiveWords.Tests.Integration", "SensitiveWords.MicroService\SensitiveWords.Tests.Integration\Flash.SensitiveWords.Tests.Integration.csproj", "{C92CFD4B-3211-2E49-BBC9-9A0DD083CAC9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flash.SensitiveWords.Tests.Unit", "SensitiveWords.MicroService\SensitiveWords.Tests.Unit\Flash.SensitiveWords.Tests.Unit.csproj", "{D606CDD3-99D0-6BDB-4BE4-CF2A70478D44}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{728204E4-29EE-2497-7A79-F4C980211942}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{728204E4-29EE-2497-7A79-F4C980211942}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{728204E4-29EE-2497-7A79-F4C980211942}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{728204E4-29EE-2497-7A79-F4C980211942}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D9FB4F05-F872-A8F7-9ED2-AA8200EA0AB8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D9FB4F05-F872-A8F7-9ED2-AA8200EA0AB8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D9FB4F05-F872-A8F7-9ED2-AA8200EA0AB8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D9FB4F05-F872-A8F7-9ED2-AA8200EA0AB8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6DA345E2-8DA4-0828-165B-BEA40525105D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6DA345E2-8DA4-0828-165B-BEA40525105D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6DA345E2-8DA4-0828-165B-BEA40525105D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6DA345E2-8DA4-0828-165B-BEA40525105D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{14F64C27-8251-1526-67F6-D4EE094322A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{14F64C27-8251-1526-67F6-D4EE094322A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{14F64C27-8251-1526-67F6-D4EE094322A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{14F64C27-8251-1526-67F6-D4EE094322A6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C92CFD4B-3211-2E49-BBC9-9A0DD083CAC9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C92CFD4B-3211-2E49-BBC9-9A0DD083CAC9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C92CFD4B-3211-2E49-BBC9-9A0DD083CAC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C92CFD4B-3211-2E49-BBC9-9A0DD083CAC9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D606CDD3-99D0-6BDB-4BE4-CF2A70478D44}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D606CDD3-99D0-6BDB-4BE4-CF2A70478D44}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D606CDD3-99D0-6BDB-4BE4-CF2A70478D44}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D606CDD3-99D0-6BDB-4BE4-CF2A70478D44}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{728204E4-29EE-2497-7A79-F4C980211942} = {83441EDA-3A0F-C791-BE9C-AAC58A9473A7}
+		{D9FB4F05-F872-A8F7-9ED2-AA8200EA0AB8} = {83441EDA-3A0F-C791-BE9C-AAC58A9473A7}
+		{6DA345E2-8DA4-0828-165B-BEA40525105D} = {83441EDA-3A0F-C791-BE9C-AAC58A9473A7}
+		{14F64C27-8251-1526-67F6-D4EE094322A6} = {83441EDA-3A0F-C791-BE9C-AAC58A9473A7}
+		{C92CFD4B-3211-2E49-BBC9-9A0DD083CAC9} = {83441EDA-3A0F-C791-BE9C-AAC58A9473A7}
+		{D606CDD3-99D0-6BDB-4BE4-CF2A70478D44} = {83441EDA-3A0F-C791-BE9C-AAC58A9473A7}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6AE1CE77-71E2-4BDE-A1B2-45C2048832D6}
+	EndGlobalSection
+EndGlobal

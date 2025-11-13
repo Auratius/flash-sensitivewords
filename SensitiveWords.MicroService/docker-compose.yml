@@ -1,0 +1,73 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sensitivewords-api
+    ports:
+      - "7001:80"
+      - "7002:443"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=SensitiveWordsDb;User Id=sa;Password=YourStrong@Password123;TrustServerCertificate=true
+    depends_on:
+      - sqlserver
+    restart: unless-stopped
+    networks:
+      - sensitivewords-network
+
+  eventstore:
+    build:
+      context: .
+      dockerfile: SensitiveWords.EventStore/Dockerfile
+    container_name: sensitivewords-eventstore
+    ports:
+      - "5100:80"
+      - "7100:443"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__EventStoreConnection=Server=sqlserver;Database=SanitizeWords.EventStoreDb;User Id=sa;Password=YourStrong@Password123;TrustServerCertificate=true
+    depends_on:
+      - sqlserver
+    restart: unless-stopped
+    networks:
+      - sensitivewords-network
+
+  react:
+    build:
+      context: ../SanatizeWords.React
+      dockerfile: Dockerfile
+    container_name: sensitivewords-react
+    ports:
+      - "3000:80"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:7001/api
+    depends_on:
+      - api
+    restart: unless-stopped
+    networks:
+      - sensitivewords-network
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sensitivewords-db
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong@Password123
+      - MSSQL_PID=Express
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    restart: unless-stopped
+    networks:
+      - sensitivewords-network
+
+networks:
+  sensitivewords-network:
+    driver: bridge
+
+volumes:
+  sqlserver-data:
