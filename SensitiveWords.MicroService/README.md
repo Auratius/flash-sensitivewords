@@ -20,6 +20,9 @@ This microservice is built using:
 - **Microservice Architecture** - Independent, deployable service
 - **Dapper** - Lightweight ORM for high-performance data access (No Entity Framework)
 
+**For detailed architectural documentation, see:**
+- [Architecture & UML Diagrams](../Documentation/UMLDiagrams.md) - Comprehensive architectural explanations, layer descriptions, and system flows
+
 ## Project Structure
 
 ```
