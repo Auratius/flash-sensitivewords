@@ -291,8 +291,4 @@ When everything's running:
 
 ## License
 
-This is a university project for demonstrating microservice architecture, Clean Architecture, and CQRS patterns.
-
----
-
-Made with .NET, React, and way too much coffee ☕
+None
