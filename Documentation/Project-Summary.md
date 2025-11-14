@@ -21,13 +21,14 @@ The project implements Clean Architecture, Domain-Driven Design, and CQRS patter
 
 ### Backend (.NET 8)
 - **ASP.NET Core Web API** - REST endpoints with Swagger documentation
+- **MediatR 12.4.1** - CQRS implementation for command/query handling ([GitHub](https://github.com/jbogard/MediatR))
 - **Dapper 2.1.35** - Lightweight ORM chosen for performance over Entity Framework
 - **SQL Server** - Database with stored procedures for data operations
 - **Serilog 8.0.3** - Structured logging with file and console sinks
 - **xUnit + Moq + FluentAssertions** - Comprehensive testing framework
 
 ### Frontend (React 18)
-- **React 18.3** - Modern UI with hooks and functional components
+- **React 18.3** - Modern UI with hooks and functional components (based on Vite React-TS template)
 - **TypeScript 5.5** - Type-safe JavaScript for reliability
 - **Vite 5.4** - Lightning-fast build tool and dev server
 - **Tailwind CSS 3.4** - Utility-first CSS framework
@@ -38,6 +39,12 @@ The project implements Clean Architecture, Domain-Driven Design, and CQRS patter
 - **Coverlet** - Code coverage collection
 - **ReportGenerator** - HTML coverage reports
 - **PowerShell** - Concurrent process management for full-stack startup
+- **PlantUML** - UML diagram generation ([PlantUML.com](https://plantuml.com/))
+
+### Architecture References
+- **Microsoft DDD Guide** - [.NET Microservices Architecture](https://docs.microsoft.com/en-us/dotnet/architecture/microservices/)
+- **Microsoft eShopOnContainers** - Reference implementation for microservices
+- **CQRS Pattern** - Command Query Responsibility Segregation with MediatR
 
 ## System Architecture
 
@@ -169,7 +176,7 @@ The project was delivered across 9 epics spanning 8 suggested sprints:
 
 ### Epic 5: React Frontend (32 points)
 **Status:** Complete
-**Delivered:** Full-featured React UI with TypeScript and Tailwind CSS
+**Delivered:** Full-featured React UI with TypeScript and Tailwind CSS (based on Vite React-TS template)
 
 **Key Stories:**
 - Tabbed layout with Message Sanitizer and Words Manager
@@ -181,6 +188,8 @@ The project was delivered across 9 epics spanning 8 suggested sprints:
 - Responsive design with professional styling
 - Inter font matching logo typography
 - Footer pinned to bottom always
+
+**Template Used:** Vite's official React-TypeScript starter template
 
 ### Epic 6: Simple Documentation (7 points)
 **Status:** Complete
@@ -462,6 +471,7 @@ This project demonstrates:
 - [Root README](../README.md) - Project overview and quick start (simple, casual tone)
 - [API README](../SensitiveWords.MicroService/README.md) - Backend setup guide (no fluff)
 - [React README](../SensitiveWords.React/README.md) - Frontend quick start (developer-focused)
+- [UML Diagrams](./UMLDiagrams.md) - Architecture diagrams with PlantUML
 - [JIRA Stories](./JIRA-Stories.md) - User stories and acceptance criteria
 
 ### Tools & Scripts
@@ -475,6 +485,14 @@ All helper scripts are in the `SpecialScripts` folder:
 ### API Documentation
 - Swagger UI: https://localhost:64725/swagger (when running)
 - Health endpoint: https://localhost:64725/health
+
+### External Resources & References
+- **MediatR** - [GitHub Repository](https://github.com/jbogard/MediatR) - CQRS with MediatR
+- **Microsoft DDD Guide** - [.NET Microservices: Architecture for Containerized .NET Applications](https://docs.microsoft.com/en-us/dotnet/architecture/microservices/)
+- **eShopOnContainers** - [GitHub](https://github.com/dotnet-architecture/eShopOnContainers) - Microsoft reference microservices
+- **PlantUML** - [Official Site](https://plantuml.com/) - Diagram generation tool
+- **Vite React-TS Template** - [GitHub](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) - Frontend starter template
+- **Clean Architecture** - [Robert C. Martin's principles](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
 
 ## Conclusion
 
