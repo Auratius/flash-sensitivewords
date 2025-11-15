@@ -8,10 +8,14 @@ namespace Flash.SensitiveWords.Application.Handlers
     public class UpdateSensitiveWordHandler
     {
         private readonly ISensitiveWordRepository _repository;
+        private readonly IOperationStatsRepository _statsRepository;
 
-        public UpdateSensitiveWordHandler(ISensitiveWordRepository repository)
+        public UpdateSensitiveWordHandler(
+            ISensitiveWordRepository repository,
+            IOperationStatsRepository statsRepository)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+            _statsRepository = statsRepository ?? throw new ArgumentNullException(nameof(statsRepository));
         }
 
         public async Task<bool> HandleAsync(UpdateSensitiveWordCommand command)
@@ -34,7 +38,14 @@ namespace Flash.SensitiveWords.Application.Handlers
             else
                 existingWord.Deactivate();
 
-            return await _repository.UpdateAsync(existingWord);
+            var result = await _repository.UpdateAsync(existingWord);
+
+            // Track operation
+            await _statsRepository.IncrementAsync(
+                Flash.SensitiveWords.Domain.Entities.OperationType.Update,
+                Flash.SensitiveWords.Domain.Entities.ResourceType.SensitiveWord);
+
+            return result;
         }
     }
 }

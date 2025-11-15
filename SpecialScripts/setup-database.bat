@@ -45,7 +45,7 @@ echo [SUCCESS] Connected to SQL Server successfully.
 echo.
 
 REM Step 1: Create Database
-echo [STEP 1/4] Creating database '%DB_NAME%'...
+echo [STEP 1/6] Creating database '%DB_NAME%'...
 sqlcmd -S %SQL_SERVER% -i "%DB_SCRIPTS%\01_CreateDatabase.sql" -b
 if %ERRORLEVEL% NEQ 0 (
     echo [ERROR] Failed to create database.
@@ -55,7 +55,7 @@ echo [SUCCESS] Database created successfully.
 echo.
 
 REM Step 2: Create Tables
-echo [STEP 2/4] Creating tables and indexes...
+echo [STEP 2/6] Creating tables and indexes...
 sqlcmd -S %SQL_SERVER% -d %DB_NAME% -i "%DB_SCRIPTS%\02_CreateTables.sql" -b
 if %ERRORLEVEL% NEQ 0 (
     echo [ERROR] Failed to create tables.
@@ -64,8 +64,18 @@ if %ERRORLEVEL% NEQ 0 (
 echo [SUCCESS] Tables created successfully.
 echo.
 
-REM Step 3: Create Stored Procedures
-echo [STEP 3/4] Creating stored procedures...
+REM Step 3: Seed Data
+echo [STEP 3/6] Seeding initial data...
+sqlcmd -S %SQL_SERVER% -d %DB_NAME% -i "%DB_SCRIPTS%\03_SeedData.sql" -b
+if %ERRORLEVEL% NEQ 0 (
+    echo [ERROR] Failed to seed data.
+    exit /b 1
+)
+echo [SUCCESS] Data seeded successfully.
+echo.
+
+REM Step 4: Create Stored Procedures
+echo [STEP 4/6] Creating stored procedures...
 sqlcmd -S %SQL_SERVER% -d %DB_NAME% -i "%DB_SCRIPTS%\04_CreateStoredProcedures.sql" -b
 if %ERRORLEVEL% NEQ 0 (
     echo [ERROR] Failed to create stored procedures.
@@ -74,14 +84,24 @@ if %ERRORLEVEL% NEQ 0 (
 echo [SUCCESS] Stored procedures created successfully.
 echo.
 
-REM Step 4: Seed Data
-echo [STEP 4/4] Seeding initial data...
-sqlcmd -S %SQL_SERVER% -d %DB_NAME% -i "%DB_SCRIPTS%\03_SeedData.sql" -b
+REM Step 5: Create Operation Statistics Table
+echo [STEP 5/6] Creating operation statistics table...
+sqlcmd -S %SQL_SERVER% -d %DB_NAME% -i "%DB_SCRIPTS%\05_CreateOperationStatsTable.sql" -b
 if %ERRORLEVEL% NEQ 0 (
-    echo [ERROR] Failed to seed data.
+    echo [ERROR] Failed to create operation statistics table.
     exit /b 1
 )
-echo [SUCCESS] Data seeded successfully.
+echo [SUCCESS] Operation statistics table created successfully.
+echo.
+
+REM Step 6: Create Operation Statistics Stored Procedures
+echo [STEP 6/6] Creating operation statistics stored procedures...
+sqlcmd -S %SQL_SERVER% -d %DB_NAME% -i "%DB_SCRIPTS%\06_CreateOperationStatsStoredProcs.sql" -b
+if %ERRORLEVEL% NEQ 0 (
+    echo [ERROR] Failed to create operation statistics stored procedures.
+    exit /b 1
+)
+echo [SUCCESS] Operation statistics stored procedures created successfully.
 echo.
 
 REM Validate setup

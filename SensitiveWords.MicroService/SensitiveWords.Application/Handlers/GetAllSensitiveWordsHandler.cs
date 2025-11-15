@@ -11,10 +11,14 @@ namespace Flash.SensitiveWords.Application.Handlers
     public class GetAllSensitiveWordsHandler
     {
         private readonly ISensitiveWordRepository _repository;
+        private readonly IOperationStatsRepository _statsRepository;
 
-        public GetAllSensitiveWordsHandler(ISensitiveWordRepository repository)
+        public GetAllSensitiveWordsHandler(
+            ISensitiveWordRepository repository,
+            IOperationStatsRepository statsRepository)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+            _statsRepository = statsRepository ?? throw new ArgumentNullException(nameof(statsRepository));
         }
 
         public async Task<IEnumerable<SensitiveWordDto>> HandleAsync(GetAllSensitiveWordsQuery query)
@@ -22,6 +26,11 @@ namespace Flash.SensitiveWords.Application.Handlers
             var words = query?.ActiveOnly == true
                 ? await _repository.GetActiveWordsAsync()
                 : await _repository.GetAllAsync();
+
+            // Track operation
+            await _statsRepository.IncrementAsync(
+                Flash.SensitiveWords.Domain.Entities.OperationType.Read,
+                Flash.SensitiveWords.Domain.Entities.ResourceType.SensitiveWord);
 
             return words.Select(w => new SensitiveWordDto
             {

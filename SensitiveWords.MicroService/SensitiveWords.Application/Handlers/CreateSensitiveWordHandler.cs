@@ -9,10 +9,14 @@ namespace Flash.SensitiveWords.Application.Handlers
     public class CreateSensitiveWordHandler
     {
         private readonly ISensitiveWordRepository _repository;
+        private readonly IOperationStatsRepository _statsRepository;
 
-        public CreateSensitiveWordHandler(ISensitiveWordRepository repository)
+        public CreateSensitiveWordHandler(
+            ISensitiveWordRepository repository,
+            IOperationStatsRepository statsRepository)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+            _statsRepository = statsRepository ?? throw new ArgumentNullException(nameof(statsRepository));
         }
 
         public async Task<Guid> HandleAsync(CreateSensitiveWordCommand command)
@@ -25,7 +29,14 @@ namespace Flash.SensitiveWords.Application.Handlers
                 throw new InvalidOperationException($"Word '{command.Word}' already exists");
 
             var sensitiveWord = new SensitiveWord(command.Word);
-            return await _repository.CreateAsync(sensitiveWord);
+            var result = await _repository.CreateAsync(sensitiveWord);
+
+            // Track operation
+            await _statsRepository.IncrementAsync(
+                Flash.SensitiveWords.Domain.Entities.OperationType.Create,
+                Flash.SensitiveWords.Domain.Entities.ResourceType.SensitiveWord);
+
+            return result;
         }
     }
 }

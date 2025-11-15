@@ -7,7 +7,8 @@ A .NET 8 REST API that detects and sanitizes SQL keywords from messages. Think o
 - Scans messages for SQL keywords
 - Replaces found keywords with asterisks
 - Manages a database of sensitive words
-- Provides health monitoring
+- Tracks operation statistics (CREATE, READ, UPDATE, DELETE, SANITIZE)
+- Provides health monitoring and metrics
 
 ## Quick Start
 
@@ -36,9 +37,10 @@ This will:
 
 ## Project Stats
 
-We've got decent test coverage:
-- 85.6% overall coverage
-- 64 tests total (53 unit + 11 integration)
+We've got excellent test coverage:
+- 133 tests total (78 unit + 55 integration)
+- 100% pass rate
+- 100% coverage on all controllers
 - 100% coverage on the application layer
 
 ## How it's built
@@ -107,6 +109,21 @@ Content-Type: application/json
 }
 ```
 
+**Get operation statistics:**
+```http
+GET /api/statistics
+```
+
+**Get statistics by operation type:**
+```http
+GET /api/statistics/SANITIZE
+```
+
+**Reset statistics:**
+```http
+POST /api/statistics/reset
+```
+
 ## Database Setup
 
 The scripts handle this, but if you want to do it manually:
@@ -115,8 +132,10 @@ The scripts handle this, but if you want to do it manually:
 cd SensitiveWords.MicroService/Database/Scripts
 sqlcmd -S localhost\SQLEXPRESS -i 01_CreateDatabase.sql
 sqlcmd -S localhost\SQLEXPRESS -d SensitiveWordsDb -i 02_CreateTables.sql
-sqlcmd -S localhost\SQLEXPRESS -d SensitiveWordsDb -i 04_CreateStoredProcedures.sql
 sqlcmd -S localhost\SQLEXPRESS -d SensitiveWordsDb -i 03_SeedData.sql
+sqlcmd -S localhost\SQLEXPRESS -d SensitiveWordsDb -i 04_CreateStoredProcedures.sql
+sqlcmd -S localhost\SQLEXPRESS -d SensitiveWordsDb -i 05_CreateOperationStatsTable.sql
+sqlcmd -S localhost\SQLEXPRESS -d SensitiveWordsDb -i 06_CreateOperationStatsStoredProcs.sql
 ```
 
 ## Common Issues

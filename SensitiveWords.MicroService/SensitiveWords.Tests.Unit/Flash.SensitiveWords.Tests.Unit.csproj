@@ -25,6 +25,7 @@
     <ProjectReference Include="..\SensitiveWords.Domain\Flash.SensitiveWords.Domain.csproj" />
     <ProjectReference Include="..\SensitiveWords.Application\Flash.SensitiveWords.Application.csproj" />
     <ProjectReference Include="..\SensitiveWords.Infrastructure\Flash.SensitiveWords.Infrastructure.csproj" />
+    <ProjectReference Include="..\SensitiveWords.API\Flash.SensitiveWords.API.csproj" />
   </ItemGroup>
 
 </Project>

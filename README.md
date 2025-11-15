@@ -71,10 +71,11 @@ flash-sensitivewords/
 The API handles:
 - Scanning messages for SQL keywords
 - Managing the sensitive words database
+- Operation statistics tracking (CREATE, READ, UPDATE, DELETE, SANITIZE)
 - Providing health monitoring
 - Running on ports 64725 (HTTPS) and 64726 (HTTP)
 
-**Test Coverage:** 85.6% overall (we actually care about this)
+**Test Coverage:** 133 tests passing (78 unit + 55 integration)
 
 [Read more in the API README](SensitiveWords.MicroService/README.md)
 
@@ -190,6 +191,16 @@ curl -X POST https://localhost:64725/api/sensitivewords \
   -d '{"word": "TRUNCATE"}'
 ```
 
+**Get operation statistics:**
+```bash
+curl https://localhost:64725/api/statistics
+```
+
+**Get statistics by operation type:**
+```bash
+curl https://localhost:64725/api/statistics/SANITIZE
+```
+
 Or just use the Swagger UI at https://localhost:64725/swagger
 
 ## Common Issues
@@ -229,11 +240,12 @@ Here's how most people use this:
 
 ## Test Coverage
 
-We've got 64 tests with 85.6% coverage:
-- 53 unit tests (fast, no database needed)
-- 11 integration tests (full end-to-end with database)
-- 100% coverage on application layer
-- 94.5% coverage on domain layer
+We've got 133 tests all passing:
+- **78 unit tests** - Fast tests with no database needed
+- **55 integration tests** - Full end-to-end tests with database
+- **Controllers:** 100% coverage on all 3 controllers (SensitiveWords, Sanitize, Statistics)
+- **Application layer:** 100% coverage
+- **Domain layer:** 94.5% coverage
 
 Run them with:
 ```bash
@@ -279,6 +291,7 @@ When everything's running:
 - **React UI:** http://localhost:5173
 - **API Swagger:** https://localhost:64725/swagger
 - **API Health:** https://localhost:64725/health
+- **API Statistics:** https://localhost:64725/api/statistics
 - **API Base:** https://localhost:64725/api
 
 ## Getting Help

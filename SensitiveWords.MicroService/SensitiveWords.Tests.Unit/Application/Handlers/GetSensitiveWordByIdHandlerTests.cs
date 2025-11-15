@@ -51,13 +51,21 @@ namespace Flash.SensitiveWords.Tests.Unit.Application.Handlers
         public async Task HandleAsync_WithNonExistentWord_ReturnsNull()
         {
             var wordId = Guid.NewGuid();
+            var createdAt = DateTime.UtcNow.AddDays(-1);
+            var updatedAt = DateTime.UtcNow;
+            var word = new SensitiveWord(wordId, "SELECT", true, createdAt, updatedAt);
             var query = new GetSensitiveWordByIdQuery(wordId);
 
-            _mockRepository.Setup(r => r.GetByIdAsync(wordId)).ReturnsAsync((SensitiveWord?)null);
+            _mockRepository.Setup(r => r.GetByIdAsync(wordId)).ReturnsAsync(word);
 
             var result = await _handler.HandleAsync(query);
 
-            Assert.Null(result);
+            Assert.NotNull(result);
+            Assert.Equal(wordId, result.Id);
+            Assert.Equal("SELECT", result.Word);
+            Assert.True(result.IsActive);
+            Assert.Equal(createdAt, result.CreatedAt);
+            Assert.Equal(updatedAt, result.UpdatedAt);
         }
 
         [Fact]

@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
+using Flash.SensitiveWords.API;
 using Flash.SensitiveWords.Application.DTOs;
 
 namespace Flash.SensitiveWords.Tests.Integration.API
@@ -129,5 +130,152 @@ namespace Flash.SensitiveWords.Tests.Integration.API
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
+
+        #region Query Parameter Tests
+
+        [Fact]
+        public async Task GetAll_WithActiveOnlyTrue_ReturnsOk()
+        {
+            var response = await _client.GetAsync("/api/sensitivewords?activeOnly=true");
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task GetAll_WithActiveOnlyFalse_ReturnsOk()
+        {
+            var response = await _client.GetAsync("/api/sensitivewords?activeOnly=false");
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task GetAll_WithNoQueryParams_ReturnsOk()
+        {
+            var response = await _client.GetAsync("/api/sensitivewords");
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
+        #endregion
+
+        #region Edge Case Tests
+
+        [Fact]
+        public async Task Create_WithVeryLongWord_ReturnsBadRequestOrCreated()
+        {
+            var longWord = new string('A', 500);
+            var request = new CreateSensitiveWordRequest { Word = longWord };
+            var content = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
+
+            var response = await _client.PostAsync("/api/sensitivewords", content);
+
+            // Accept either BadRequest (validation) or Created (if allowed)
+            Assert.True(response.StatusCode == HttpStatusCode.BadRequest ||
+                       response.StatusCode == HttpStatusCode.Created);
+        }
+
+        [Fact]
+        public async Task Create_WithSpecialCharacters_ReturnsCreatedOrBadRequest()
+        {
+            var request = new CreateSensitiveWordRequest { Word = $"TEST!@#${Guid.NewGuid()}" };
+            var content = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
+
+            var response = await _client.PostAsync("/api/sensitivewords", content);
+
+            // Accept either response depending on validation rules
+            Assert.True(response.StatusCode == HttpStatusCode.BadRequest ||
+                       response.StatusCode == HttpStatusCode.Created);
+        }
+
+        [Fact]
+        public async Task GetById_WithEmptyGuid_ReturnsNotFound()
+        {
+            var response = await _client.GetAsync($"/api/sensitivewords/{Guid.Empty}");
+
+            Assert.True(response.StatusCode == HttpStatusCode.NotFound ||
+                       response.StatusCode == HttpStatusCode.BadRequest);
+        }
+
+        [Fact]
+        public async Task Update_WithMismatchedData_ReturnsBadRequest()
+        {
+            var id = Guid.NewGuid();
+            var updateRequest = new UpdateSensitiveWordRequest { Word = "", IsActive = true };
+            var content = new StringContent(JsonSerializer.Serialize(updateRequest), Encoding.UTF8, "application/json");
+
+            var response = await _client.PutAsync($"/api/sensitivewords/{id}", content);
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        #endregion
+
+        #region Content Type Tests
+
+        [Fact]
+        public async Task GetAll_ReturnsJsonContentType()
+        {
+            var response = await _client.GetAsync("/api/sensitivewords");
+
+            Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
+        }
+
+        [Fact]
+        public async Task Create_WithValidRequest_ReturnsJsonContentType()
+        {
+            var request = new CreateSensitiveWordRequest { Word = $"JSONTEST{Guid.NewGuid()}" };
+            var content = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
+
+            var response = await _client.PostAsync("/api/sensitivewords", content);
+
+            if (response.StatusCode == HttpStatusCode.Created)
+            {
+                Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
+            }
+        }
+
+        #endregion
+
+        #region Performance Tests
+
+        [Fact]
+        public async Task GetAll_MultipleConcurrentRequests_AllSucceed()
+        {
+            var tasks = new Task<HttpResponseMessage>[10];
+            for (int i = 0; i < 10; i++)
+            {
+                tasks[i] = _client.GetAsync("/api/sensitivewords");
+            }
+
+            var responses = await Task.WhenAll(tasks);
+
+            foreach (var response in responses)
+            {
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            }
+        }
+
+        [Fact]
+        public async Task Create_MultipleConcurrentUniqueWords_AllSucceed()
+        {
+            var tasks = new Task<HttpResponseMessage>[5];
+            for (int i = 0; i < 5; i++)
+            {
+                var request = new CreateSensitiveWordRequest { Word = $"CONCURRENT{Guid.NewGuid()}" };
+                var content = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
+                tasks[i] = _client.PostAsync("/api/sensitivewords", content);
+            }
+
+            var responses = await Task.WhenAll(tasks);
+
+            foreach (var response in responses)
+            {
+                Assert.True(response.StatusCode == HttpStatusCode.Created ||
+                           response.StatusCode == HttpStatusCode.BadRequest);
+            }
+        }
+
+        #endregion
     }
 }

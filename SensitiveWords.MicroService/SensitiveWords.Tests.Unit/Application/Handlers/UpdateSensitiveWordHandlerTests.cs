@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Moq;
 using Xunit;
@@ -12,18 +13,26 @@ namespace Flash.SensitiveWords.Tests.Unit.Application.Handlers
     public class UpdateSensitiveWordHandlerTests
     {
         private readonly Mock<ISensitiveWordRepository> _mockRepository;
+        private readonly Mock<IOperationStatsRepository> _mockStatsRepo;
         private readonly UpdateSensitiveWordHandler _handler;
 
         public UpdateSensitiveWordHandlerTests()
         {
             _mockRepository = new Mock<ISensitiveWordRepository>();
-            _handler = new UpdateSensitiveWordHandler(_mockRepository.Object);
+            _mockStatsRepo = new Mock<IOperationStatsRepository>();
+            _handler = new UpdateSensitiveWordHandler(_mockRepository.Object, _mockStatsRepo.Object);
         }
 
         [Fact]
         public void Constructor_WithNullRepository_ThrowsArgumentNullException()
         {
-            Assert.Throws<ArgumentNullException>(() => new UpdateSensitiveWordHandler(null!));
+            Assert.Throws<ArgumentNullException>(() => new UpdateSensitiveWordHandler(null!, _mockStatsRepo.Object));
+        }
+
+        [Fact]
+        public void Constructor_WithNullStatsRepository_ThrowsArgumentNullException()
+        {
+            Assert.Throws<ArgumentNullException>(() => new UpdateSensitiveWordHandler(_mockRepository.Object, null!));
         }
 
         [Fact]
@@ -34,14 +43,19 @@ namespace Flash.SensitiveWords.Tests.Unit.Application.Handlers
             var command = new UpdateSensitiveWordCommand(wordId, "DROP", true);
 
             _mockRepository.Setup(r => r.GetByIdAsync(wordId)).ReturnsAsync(existingWord);
-            _mockRepository.Setup(r => r.GetByWordAsync("DROP")).ReturnsAsync((SensitiveWord?)null);
+            // repository returns null for a word lookup — simulate no duplicate
+            _mockRepository.Setup(r => r.GetByWordAsync("DROP")).ReturnsAsync((SensitiveWord) null!);
             _mockRepository.Setup(r => r.UpdateAsync(It.IsAny<SensitiveWord>())).ReturnsAsync(true);
+            _mockStatsRepo
+                .Setup(r => r.IncrementAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
 
             var result = await _handler.HandleAsync(command);
 
             Assert.True(result);
             Assert.Equal("DROP", existingWord.Word);
             _mockRepository.Verify(r => r.UpdateAsync(It.IsAny<SensitiveWord>()), Times.Once);
+            _mockStatsRepo.Verify(r => r.IncrementAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -54,12 +68,16 @@ namespace Flash.SensitiveWords.Tests.Unit.Application.Handlers
             _mockRepository.Setup(r => r.GetByIdAsync(wordId)).ReturnsAsync(existingWord);
             _mockRepository.Setup(r => r.GetByWordAsync("SELECT")).ReturnsAsync(existingWord);
             _mockRepository.Setup(r => r.UpdateAsync(It.IsAny<SensitiveWord>())).ReturnsAsync(true);
+            _mockStatsRepo
+                .Setup(r => r.IncrementAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
 
             var result = await _handler.HandleAsync(command);
 
             Assert.True(result);
             Assert.False(existingWord.IsActive);
             _mockRepository.Verify(r => r.UpdateAsync(It.IsAny<SensitiveWord>()), Times.Once);
+            _mockStatsRepo.Verify(r => r.IncrementAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -72,12 +90,16 @@ namespace Flash.SensitiveWords.Tests.Unit.Application.Handlers
             _mockRepository.Setup(r => r.GetByIdAsync(wordId)).ReturnsAsync(existingWord);
             _mockRepository.Setup(r => r.GetByWordAsync("SELECT")).ReturnsAsync(existingWord);
             _mockRepository.Setup(r => r.UpdateAsync(It.IsAny<SensitiveWord>())).ReturnsAsync(true);
+            _mockStatsRepo
+                .Setup(r => r.IncrementAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
 
             var result = await _handler.HandleAsync(command);
 
             Assert.True(result);
             Assert.True(existingWord.IsActive);
             _mockRepository.Verify(r => r.UpdateAsync(It.IsAny<SensitiveWord>()), Times.Once);
+            _mockStatsRepo.Verify(r => r.IncrementAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -86,10 +108,12 @@ namespace Flash.SensitiveWords.Tests.Unit.Application.Handlers
             var wordId = Guid.NewGuid();
             var command = new UpdateSensitiveWordCommand(wordId, "DROP", true);
 
-            _mockRepository.Setup(r => r.GetByIdAsync(wordId)).ReturnsAsync((SensitiveWord?)null);
+            // Simulate repository returning null for the requested id
+            _mockRepository.Setup(r => r.GetByIdAsync(wordId)).ReturnsAsync((SensitiveWord) null!);
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _handler.HandleAsync(command));
             _mockRepository.Verify(r => r.UpdateAsync(It.IsAny<SensitiveWord>()), Times.Never);
+            _mockStatsRepo.Verify(r => r.IncrementAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Fact]
@@ -106,12 +130,16 @@ namespace Flash.SensitiveWords.Tests.Unit.Application.Handlers
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _handler.HandleAsync(command));
             _mockRepository.Verify(r => r.UpdateAsync(It.IsAny<SensitiveWord>()), Times.Never);
+            _mockStatsRepo.Verify(r => r.IncrementAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Fact]
         public async Task HandleAsync_WithNullCommand_ThrowsArgumentNullException()
         {
             await Assert.ThrowsAsync<ArgumentNullException>(() => _handler.HandleAsync(null!));
+            _mockRepository.Verify(r => r.GetByIdAsync(It.IsAny<Guid>()), Times.Never);
+            _mockRepository.Verify(r => r.UpdateAsync(It.IsAny<SensitiveWord>()), Times.Never);
+            _mockStatsRepo.Verify(r => r.IncrementAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
         }
     }
 }

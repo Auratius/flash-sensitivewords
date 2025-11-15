@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Moq;
 using Xunit;
@@ -14,18 +15,26 @@ namespace Flash.SensitiveWords.Tests.Unit.Application.Handlers
     public class GetAllSensitiveWordsHandlerTests
     {
         private readonly Mock<ISensitiveWordRepository> _mockRepository;
+        private readonly Mock<IOperationStatsRepository> _mockStatsRepo;
         private readonly GetAllSensitiveWordsHandler _handler;
 
         public GetAllSensitiveWordsHandlerTests()
         {
             _mockRepository = new Mock<ISensitiveWordRepository>();
-            _handler = new GetAllSensitiveWordsHandler(_mockRepository.Object);
+            _mockStatsRepo = new Mock<IOperationStatsRepository>();
+            _handler = new GetAllSensitiveWordsHandler(_mockRepository.Object, _mockStatsRepo.Object);
         }
 
         [Fact]
         public void Constructor_WithNullRepository_ThrowsArgumentNullException()
         {
-            Assert.Throws<ArgumentNullException>(() => new GetAllSensitiveWordsHandler(null!));
+            Assert.Throws<ArgumentNullException>(() => new GetAllSensitiveWordsHandler(null!, _mockStatsRepo.Object));
+        }
+
+        [Fact]
+        public void Constructor_WithNullStatsRepository_ThrowsArgumentNullException()
+        {
+            Assert.Throws<ArgumentNullException>(() => new GetAllSensitiveWordsHandler(_mockRepository.Object, null!));
         }
 
         [Fact]
@@ -40,14 +49,20 @@ namespace Flash.SensitiveWords.Tests.Unit.Application.Handlers
             var query = new GetAllSensitiveWordsQuery();
 
             _mockRepository.Setup(r => r.GetAllAsync()).ReturnsAsync(words);
+            _mockStatsRepo
+                .Setup(r => r.IncrementAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
 
             var result = await _handler.HandleAsync(query);
 
             Assert.NotNull(result);
             Assert.Equal(3, result.Count());
-            Assert.Contains(result, w => w.Word == "SELECT");
-            Assert.Contains(result, w => w.Word == "DROP");
-            Assert.Contains(result, w => w.Word == "DELETE");
+            Assert.Contains("SELECT", result.Select(r => r.Word));
+            Assert.Contains("DROP", result.Select(r => r.Word));
+            Assert.Contains("DELETE", result.Select(r => r.Word));
+
+            _mockRepository.Verify(r => r.GetAllAsync(), Times.Once);
+            _mockStatsRepo.Verify(r => r.IncrementAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -56,17 +71,23 @@ namespace Flash.SensitiveWords.Tests.Unit.Application.Handlers
             var query = new GetAllSensitiveWordsQuery();
 
             _mockRepository.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<SensitiveWord>());
+            _mockStatsRepo
+                .Setup(r => r.IncrementAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
 
             var result = await _handler.HandleAsync(query);
 
             Assert.NotNull(result);
             Assert.Empty(result);
+
+            _mockRepository.Verify(r => r.GetAllAsync(), Times.Once);
+            _mockStatsRepo.Verify(r => r.IncrementAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
         public async Task HandleAsync_WithNullQuery_ReturnsAllWords()
         {
-            // The handler accepts null query and treats it as getting all words
+            // Handler treats null query as "get all"
             var words = new List<SensitiveWord>
             {
                 new SensitiveWord("SELECT"),
@@ -74,11 +95,17 @@ namespace Flash.SensitiveWords.Tests.Unit.Application.Handlers
             };
 
             _mockRepository.Setup(r => r.GetAllAsync()).ReturnsAsync(words);
+            _mockStatsRepo
+                .Setup(r => r.IncrementAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
 
             var result = await _handler.HandleAsync(null!);
 
             Assert.NotNull(result);
             Assert.Equal(2, result.Count());
+
+            _mockRepository.Verify(r => r.GetAllAsync(), Times.Once);
+            _mockStatsRepo.Verify(r => r.IncrementAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -90,6 +117,9 @@ namespace Flash.SensitiveWords.Tests.Unit.Application.Handlers
             var query = new GetAllSensitiveWordsQuery();
 
             _mockRepository.Setup(r => r.GetAllAsync()).ReturnsAsync(words);
+            _mockStatsRepo
+                .Setup(r => r.IncrementAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
 
             var result = await _handler.HandleAsync(query);
 
@@ -101,6 +131,9 @@ namespace Flash.SensitiveWords.Tests.Unit.Application.Handlers
 
             var inactiveDto = result.First(w => w.Word == "DROP");
             Assert.False(inactiveDto.IsActive);
+
+            _mockRepository.Verify(r => r.GetAllAsync(), Times.Once);
+            _mockStatsRepo.Verify(r => r.IncrementAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }

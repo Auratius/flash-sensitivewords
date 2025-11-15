@@ -32,3 +32,11 @@ export interface HealthStats {
   cpuTimeSeconds: number;
   threadCount: number;
 }
+
+export interface OperationStat {
+  id: number;
+  operationType: string;
+  resourceType: string;
+  count: number;
+  lastUpdated: string;
+}

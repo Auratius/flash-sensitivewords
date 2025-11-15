@@ -229,7 +229,12 @@ GO
 -- Description: Bulk insert sensitive words (Table-Valued Parameter)
 -- =============================================
 
--- First create the table type for bulk operations
+-- Drop stored procedure first if it exists (must drop before dropping the type it uses)
+IF OBJECT_ID('dbo.sp_SensitiveWords_BulkInsert', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.sp_SensitiveWords_BulkInsert;
+GO
+
+-- Now safe to drop and recreate the table type
 IF TYPE_ID('dbo.SensitiveWordTableType') IS NOT NULL
     DROP TYPE dbo.SensitiveWordTableType;
 GO
@@ -242,10 +247,6 @@ CREATE TYPE dbo.SensitiveWordTableType AS TABLE
     CreatedAt DATETIME2,
     UpdatedAt DATETIME2
 );
-GO
-
-IF OBJECT_ID('dbo.sp_SensitiveWords_BulkInsert', 'P') IS NOT NULL
-    DROP PROCEDURE dbo.sp_SensitiveWords_BulkInsert;
 GO
 
 CREATE PROCEDURE dbo.sp_SensitiveWords_BulkInsert

@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find:*)",
+      "Bash(cat:*)",
+      "Bash(xargs cat:*)",
+      "Bash(for file in CreateSensitiveWordHandler.cs DeleteSensitiveWordHandler.cs GetAllSensitiveWordsHandler.cs SanitizeMessageHandler.cs UpdateSensitiveWordHandler.cs)",
+      "Bash(do sed -i 's/using SensitiveWords.Infrastructure.Repositories;/using SensitiveWords.Domain.Interfaces;/' \"$file\")",
+      "Bash(done)",
+      "Bash(do sed -i 's/using SensitiveWords.Domain.Interfaces;/using Flash.SensitiveWords.Domain.Interfaces;/' \"$file\")",
+      "Bash(dotnet test:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

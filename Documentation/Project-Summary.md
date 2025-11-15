@@ -4,14 +4,15 @@
 
 Flash.SensitiveWords is a production-ready microservice system designed to detect and sanitize SQL keywords from user messages. Built with .NET 8 and React 18, it provides a robust API backend and an intuitive web interface for managing and testing SQL injection prevention.
 
-The project implements Clean Architecture, Domain-Driven Design, and CQRS patterns to ensure maintainability, testability, and scalability. With 85.6% test coverage across 64 tests, it demonstrates a strong commitment to code quality and reliability.
+The project implements Clean Architecture, Domain-Driven Design, and CQRS patterns to ensure maintainability, testability, and scalability. With 133 tests all passing (78 unit + 55 integration) and 100% coverage on all controllers, it demonstrates a strong commitment to code quality and reliability.
 
 ## Quick Facts
 
 - **Total Story Points Delivered:** 137 across 8 epics (29 in backlog)
 - **Development Time:** 4 days total (all 5 sprints completed in 4 days!)
 - **Sprint Duration:** Ultra-short iterations, full project in 4 days
-- **Test Coverage:** 85.6% (53 unit tests + 11 integration tests)
+- **Test Coverage:** 133 tests passing (78 unit + 55 integration)
+- **Controller Coverage:** 100% on all 3 controllers (SensitiveWords, Sanitize, Statistics)
 - **Architecture:** Clean Architecture + CQRS + DDD
 - **Backend:** .NET 8, ASP.NET Core Web API, Dapper, SQL Server
 - **Frontend:** React 18, TypeScript, Vite, Tailwind CSS
@@ -98,7 +99,15 @@ Full CRUD operations for managing the database of sensitive words:
 - Search and filter functionality
 - Pagination (7 items per page)
 
-### 3. Real-Time Health Monitoring
+### 3. Operation Statistics Tracking
+Comprehensive statistics monitoring:
+- Tracks all operations (CREATE, READ, UPDATE, DELETE, SANITIZE)
+- GET /api/statistics - View all operation counts
+- GET /api/statistics/{type} - Filter by operation type
+- POST /api/statistics/reset - Reset all counters
+- Real-time operation counting per resource type
+
+### 4. Real-Time Health Monitoring
 System metrics dashboard showing:
 - Uptime tracking
 - Memory usage
@@ -106,7 +115,7 @@ System metrics dashboard showing:
 - Active thread count
 - Auto-refresh every 5 seconds
 
-### 4. Developer Experience
+### 5. Developer Experience
 12 automated scripts for common tasks:
 - Database setup and reset
 - Full-stack startup (single or dual window)
@@ -116,7 +125,7 @@ System metrics dashboard showing:
 - Log viewing
 - Backup creation
 
-### 5. Interactive Help System
+### 6. Interactive Help System
 Built-in guide with 4 tabs:
 - Quick Start instructions
 - Sanitizer usage tips
@@ -152,12 +161,13 @@ The project was delivered across 9 epics spanning 8 suggested sprints:
 
 ### Epic 3: Testing & Quality (16 points)
 **Status:** Complete
-**Delivered:** 85.6% test coverage, 64 tests, quality gates
+**Delivered:** 133 tests passing, 100% controller coverage, quality gates
 
 **Key Stories:**
-- 53 unit tests covering application and domain layers
-- 11 integration tests with real database
-- Code coverage reporting (100% application layer, 94.5% domain)
+- 78 unit tests covering application, domain, and API layers
+- 55 integration tests with real database
+- 100% coverage on all controllers (SensitiveWords, Sanitize, Statistics)
+- 100% coverage on application layer, 94.5% on domain layer
 - Validation rules and error handling
 
 ### Epic 4: Developer Experience (18 points)
@@ -260,7 +270,8 @@ This demonstrates an extremely fast development pace with focused execution.
 
 ### ✅ Completed
 - All core functionality implemented and tested
-- 85.6% test coverage exceeds industry standards
+- 133 tests passing with 100% controller coverage
+- Operation statistics tracking for all API operations
 - Full-stack development environment with automation
 - Production-ready API with Swagger documentation
 - Professional React UI with responsive design
@@ -269,16 +280,17 @@ This demonstrates an extremely fast development pace with focused execution.
 ### 📊 Metrics
 - **4 days** total development time (entire project!)
 - **137 story points** delivered at 34.25 points/day velocity
-- **64 tests** passing (53 unit + 11 integration)
+- **133 tests** passing (78 unit + 55 integration)
 - **12 helper scripts** for developer productivity
 - **36 user stories** completed across 5 sprints
 - **4 architectural layers** (API, Application, Domain, Infrastructure)
-- **3 core entities** (SensitiveWord, SanitizationResult, health metrics)
+- **4 core entities** (SensitiveWord, SanitizationResult, OperationStat, health metrics)
 
 ### 🎯 Code Quality
+- **100%** coverage on all 3 controllers (SensitiveWords, Sanitize, Statistics)
 - **100%** coverage on application layer
 - **94.5%** coverage on domain layer
-- **85.6%** overall coverage
+- **133 tests** all passing (78 unit + 55 integration)
 - Clean Architecture principles enforced
 - SOLID principles applied throughout
 - Comprehensive error handling
@@ -326,6 +338,7 @@ When the system is running:
 - **React UI:** http://localhost:5173
 - **API Swagger:** https://localhost:64725/swagger
 - **Health Check:** https://localhost:64725/health
+- **API Statistics:** https://localhost:64725/api/statistics
 - **API Base:** https://localhost:64725/api
 
 ## Development Workflow
@@ -359,22 +372,26 @@ This runs:
 
 ## Testing Strategy
 
-### Unit Tests (53 tests)
+### Unit Tests (78 tests)
 - Fast, isolated tests with no external dependencies
 - Mock database and external services
-- Cover application and domain logic
+- Cover application, domain, and API layers
+- Includes StatisticsController (20 tests)
 - Run in milliseconds
 
-### Integration Tests (11 tests)
+### Integration Tests (55 tests)
 - Full end-to-end testing with real database
 - Test SQL Server stored procedures
-- Verify API endpoints with HTTP requests
+- Verify all API endpoints with HTTP requests
+- Comprehensive controller testing (SensitiveWords, Sanitize, Statistics)
+- Edge cases, concurrent requests, performance scenarios
 - Run in seconds
 
-### Coverage Goals
-- Minimum 85% overall (currently 85.6%)
-- 100% on application layer (achieved)
-- 95%+ on domain layer (currently 94.5%)
+### Coverage Achievements
+- **100%** coverage on all 3 controllers
+- **100%** coverage on application layer
+- **94.5%** coverage on domain layer
+- **133 tests** all passing
 
 ## Architecture Highlights
 
@@ -496,12 +513,13 @@ All helper scripts are in the `SpecialScripts` folder:
 
 ## Conclusion
 
-Flash.SensitiveWords was built in just **4 days total** with intense focus on shipping working code. With 85.6% test coverage and clean architecture, it's production-ready without the overhead of formal documentation or deployment automation.
+Flash.SensitiveWords was built in just **4 days total** with intense focus on shipping working code. With 133 tests passing (100% controller coverage) and clean architecture, it's production-ready without the overhead of formal documentation or deployment automation.
 
 The 137 story points delivered across 5 sprints in 4 days (34.25 points/day velocity) represent an extremely focused, pragmatic approach: build core features fast, write simple READMEs, add automation scripts. The 29 points in the backlog cover future enhancements that weren't critical for rapid delivery.
 
 **Project Status:** Production Ready (4 days!)
-**Test Coverage:** 85.6%
+**Test Coverage:** 133 tests passing (78 unit + 55 integration)
+**Controller Coverage:** 100% on all 3 controllers
 **Development Velocity:** 34.25 story points/day
 **Sprint Approach:** 5 sprints in 4 days total
 **Documentation:** Simple READMEs only

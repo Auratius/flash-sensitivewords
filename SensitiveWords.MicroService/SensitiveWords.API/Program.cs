@@ -104,6 +104,7 @@ try
     builder.Services.AddSingleton<DapperContext>();
     builder.Services.AddScoped<ISensitiveWordRepository, SensitiveWordRepository>();
     builder.Services.AddScoped<ISanitizationService, SanitizationService>();
+    builder.Services.AddScoped<IOperationStatsRepository, OperationStatsRepository>();
 
     builder.Services.AddScoped<GetAllSensitiveWordsHandler>();
     builder.Services.AddScoped<GetSensitiveWordByIdHandler>();
@@ -215,5 +216,8 @@ finally
     Log.CloseAndFlush();
 }
 
-// Make the implicit Program class public so integration tests can access it
-public partial class Program { }
+namespace Flash.SensitiveWords.API
+{
+    // Make the implicit Program class public so integration tests can access it
+    public partial class Program { }
+}

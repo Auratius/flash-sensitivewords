@@ -5,6 +5,7 @@ import {
   SanitizeRequest,
   SanitizeResponse,
   HealthStats,
+  OperationStat,
 } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://localhost:7001/api';
@@ -73,5 +74,26 @@ export const healthApi = {
     const response = await fetch(`${METRICS_BASE_URL}/metrics`);
     if (!response.ok) throw new Error('Failed to fetch health stats');
     return response.json();
+  },
+};
+
+export const statisticsApi = {
+  async getAll(): Promise<OperationStat[]> {
+    const response = await fetch(`${API_BASE_URL}/statistics`);
+    if (!response.ok) throw new Error('Failed to fetch operation statistics');
+    return response.json();
+  },
+
+  async getByType(operationType: string): Promise<OperationStat[]> {
+    const response = await fetch(`${API_BASE_URL}/statistics/${operationType}`);
+    if (!response.ok) throw new Error(`Failed to fetch statistics for ${operationType}`);
+    return response.json();
+  },
+
+  async reset(): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/statistics/reset`, {
+      method: 'POST',
+    });
+    if (!response.ok) throw new Error('Failed to reset statistics');
   },
 };

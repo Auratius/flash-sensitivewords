@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Plus, Trash2, Edit2, X, Check, AlertCircle, Search } from 'lucide-react';
+import { Plus, Trash2, Edit2, AlertCircle, Search } from 'lucide-react';
 import { sensitiveWordsApi } from '../services/api';
 import { SensitiveWord } from '../types';
+import { EditWordModal } from './EditWordModal';
+import { DeleteConfirmModal } from './DeleteConfirmModal';
 
 export function WordsManager() {
   const [words, setWords] = useState<SensitiveWord[]>([]);
@@ -9,10 +11,13 @@ export function WordsManager() {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [newWord, setNewWord] = useState('');
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editWord, setEditWord] = useState('');
-  const [editActive, setEditActive] = useState(true);
+
+  // Modal states
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [editingWord, setEditingWord] = useState<SensitiveWord | null>(null);
+  const [deletingWord, setDeletingWord] = useState<SensitiveWord | null>(null);
+  const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
 
   const fetchWords = async () => {
     try {
@@ -39,43 +44,50 @@ export function WordsManager() {
     setFilteredWords(filtered);
   }, [searchTerm, words]);
 
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newWord.trim()) return;
+  const openAddModal = () => {
+    setModalMode('add');
+    setEditingWord(null);
+    setIsEditModalOpen(true);
+  };
 
+  const openEditModal = (word: SensitiveWord) => {
+    setModalMode('edit');
+    setEditingWord(word);
+    setIsEditModalOpen(true);
+  };
+
+  const openDeleteModal = (word: SensitiveWord) => {
+    setDeletingWord(word);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleSaveWord = async (word: string, isActive: boolean) => {
     try {
-      await sensitiveWordsApi.create({ word: newWord.trim() });
-      setNewWord('');
+      if (modalMode === 'add') {
+        await sensitiveWordsApi.create({ word });
+      } else if (editingWord) {
+        await sensitiveWordsApi.update(editingWord.id, { word, isActive });
+      }
       await fetchWords();
+      setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create word');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to save word';
+      setError(errorMessage);
+      throw new Error(errorMessage);
     }
   };
 
-  const handleEdit = (word: SensitiveWord) => {
-    setEditingId(word.id);
-    setEditWord(word.word);
-    setEditActive(word.isActive);
-  };
-
-  const handleUpdate = async (id: string) => {
-    try {
-      await sensitiveWordsApi.update(id, { word: editWord.trim(), isActive: editActive });
-      setEditingId(null);
-      await fetchWords();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update word');
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this word?')) return;
+  const handleConfirmDelete = async () => {
+    if (!deletingWord) return;
 
     try {
-      await sensitiveWordsApi.delete(id);
+      await sensitiveWordsApi.delete(deletingWord.id);
       await fetchWords();
+      setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete word');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete word';
+      setError(errorMessage);
+      throw new Error(errorMessage);
     }
   };
 
@@ -83,25 +95,15 @@ export function WordsManager() {
     <div className="h-full flex flex-col">
       <h2 className="text-2xl font-semibold text-slate-900 mb-6">Manage Sensitive Words</h2>
 
-      <form onSubmit={handleCreate} className="mb-4">
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={newWord}
-            onChange={(e) => setNewWord(e.target.value)}
-            placeholder="Add new sensitive word..."
-            className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-lime-500 focus:border-lime-500 transition-colors"
-          />
-          <button
-            type="submit"
-            disabled={!newWord.trim()}
-            className="flex items-center gap-2 bg-lime-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-lime-700 focus:outline-none focus:ring-2 focus:ring-lime-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            <Plus className="w-5 h-5" />
-            Add Word
-          </button>
-        </div>
-      </form>
+      <div className="mb-4">
+        <button
+          onClick={openAddModal}
+          className="flex items-center gap-2 bg-lime-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-lime-700 focus:outline-none focus:ring-2 focus:ring-lime-500 focus:ring-offset-2 transition-colors"
+        >
+          <Plus className="w-5 h-5" />
+          Add New Word
+        </button>
+      </div>
 
       <div className="mb-4">
         <div className="relative">
@@ -131,52 +133,22 @@ export function WordsManager() {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-lime-600"></div>
         </div>
       ) : (
-        <div className="space-y-2 overflow-y-auto mb-4" style={{ height: '420px' }}>
+        <div className="overflow-y-auto mb-4" style={{ height: '420px' }}>
           {filteredWords.length === 0 ? (
             <p className="text-center text-slate-500 py-8">
               {searchTerm ? 'No words found matching your search' : 'No sensitive words added yet'}
             </p>
           ) : (
-            filteredWords.map((word) => (
-              <div
-                key={word.id}
-                className="flex items-center gap-3 p-3 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
-              >
-                {editingId === word.id ? (
-                  <>
-                    <input
-                      type="text"
-                      value={editWord}
-                      onChange={(e) => setEditWord(e.target.value)}
-                      className="flex-1 px-3 py-1 border border-slate-300 rounded focus:ring-2 focus:ring-lime-500 focus:border-lime-500"
-                    />
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={editActive}
-                        onChange={(e) => setEditActive(e.target.checked)}
-                        className="rounded border-slate-300 text-lime-600 focus:ring-lime-500"
-                      />
-                      <span className="text-sm text-slate-700">Active</span>
-                    </label>
-                    <button
-                      onClick={() => handleUpdate(word.id)}
-                      className="p-2 text-lime-600 hover:bg-lime-50 rounded transition-colors"
-                    >
-                      <Check className="w-5 h-5" />
-                    </button>
-                    <button
-                      onClick={() => setEditingId(null)}
-                      className="p-2 text-slate-600 hover:bg-slate-100 rounded transition-colors"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <span className="flex-1 font-mono text-slate-900">{word.word}</span>
+            <div className="grid grid-cols-3 gap-3">
+              {filteredWords.map((word) => (
+                <div
+                  key={word.id}
+                  className="flex flex-col gap-2 p-3 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="flex-1 font-mono text-slate-900 break-words">{word.word}</span>
                     <span
-                      className={`px-2 py-1 rounded text-xs font-medium ${
+                      className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap ${
                         word.isActive
                           ? 'bg-lime-100 text-lime-800'
                           : 'bg-slate-100 text-slate-600'
@@ -184,22 +156,28 @@ export function WordsManager() {
                     >
                       {word.isActive ? 'Active' : 'Inactive'}
                     </span>
+                  </div>
+                  <div className="flex gap-2">
                     <button
-                      onClick={() => handleEdit(word)}
-                      className="p-2 text-lime-600 hover:bg-lime-50 rounded transition-colors"
+                      onClick={() => openEditModal(word)}
+                      className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-sm text-lime-600 bg-lime-50 hover:bg-lime-100 rounded transition-colors"
+                      title="Edit word"
                     >
-                      <Edit2 className="w-5 h-5" />
+                      <Edit2 className="w-4 h-4" />
+                      Edit
                     </button>
                     <button
-                      onClick={() => handleDelete(word.id)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
+                      onClick={() => openDeleteModal(word)}
+                      className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-sm text-red-600 bg-red-50 hover:bg-red-100 rounded transition-colors"
+                      title="Delete word"
                     >
-                      <Trash2 className="w-5 h-5" />
+                      <Trash2 className="w-4 h-4" />
+                      Delete
                     </button>
-                  </>
-                )}
-              </div>
-            ))
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       )}
@@ -212,6 +190,23 @@ export function WordsManager() {
           </span>
         </p>
       </div>
+
+      {/* Modals */}
+      <EditWordModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onSave={handleSaveWord}
+        initialWord={editingWord?.word || ''}
+        initialActive={editingWord?.isActive ?? true}
+        mode={modalMode}
+      />
+
+      <DeleteConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        wordToDelete={deletingWord?.word || ''}
+      />
     </div>
   );
 }

@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import { MessageSquare, Database } from 'lucide-react';
+import { MessageSquare, Database, Activity } from 'lucide-react';
 import { SanitizeForm } from './components/SanitizeForm';
 import { WordsManager } from './components/WordsManager';
 import { HealthStats } from './components/HealthStats';
+import { OperationStats } from './components/OperationStats';
 import { PageGuide } from './components/PageGuide';
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'sanitize' | 'words'>('sanitize');
+  const [activeTab, setActiveTab] = useState<'sanitize' | 'words' | 'stats'>('sanitize');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex flex-col">
@@ -52,6 +53,17 @@ function App() {
                 <Database className="w-4 h-4" />
                 <span>Words Manager</span>
               </button>
+              <button
+                onClick={() => setActiveTab('stats')}
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold transition-colors ${
+                  activeTab === 'stats'
+                    ? 'bg-lime-600 text-white border-b-2 border-lime-700'
+                    : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                <Activity className="w-4 h-4" />
+                <span>Operation Statistics</span>
+              </button>
             </div>
           </div>
 
@@ -59,6 +71,7 @@ function App() {
           <div className="p-6 flex-1 overflow-auto">
             {activeTab === 'sanitize' && <SanitizeForm />}
             {activeTab === 'words' && <WordsManager />}
+            {activeTab === 'stats' && <OperationStats />}
           </div>
         </div>
 

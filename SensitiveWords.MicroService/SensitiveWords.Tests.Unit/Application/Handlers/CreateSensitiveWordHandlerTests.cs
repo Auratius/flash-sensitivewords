@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Moq;
 using Xunit;
@@ -11,49 +12,64 @@ namespace Flash.SensitiveWords.Tests.Unit.Application.Handlers
 {
     public class CreateSensitiveWordHandlerTests
     {
-        private readonly Mock<ISensitiveWordRepository> _mockRepository;
+        private readonly Mock<ISensitiveWordRepository> _mockRepo;
+        private readonly Mock<IOperationStatsRepository> _mockStats;
         private readonly CreateSensitiveWordHandler _handler;
 
         public CreateSensitiveWordHandlerTests()
         {
-            _mockRepository = new Mock<ISensitiveWordRepository>();
-            _handler = new CreateSensitiveWordHandler(_mockRepository.Object);
+            _mockRepo = new Mock<ISensitiveWordRepository>();
+            _mockStats = new Mock<IOperationStatsRepository>();
+            _handler = new CreateSensitiveWordHandler(_mockRepo.Object, _mockStats.Object);
         }
 
         [Fact]
         public void Constructor_WithNullRepository_ThrowsArgumentNullException()
         {
-            Assert.Throws<ArgumentNullException>(() => new CreateSensitiveWordHandler(null!));
+            Assert.Throws<ArgumentNullException>(() => new CreateSensitiveWordHandler(null!, _mockStats.Object));
         }
 
         [Fact]
-        public async Task HandleAsync_WithValidCommand_CreatesWord()
+        public async Task HandleAsync_WithValidCommand_CreatesAndTracks()
         {
-            var command = new CreateSensitiveWordCommand("SELECT");
+            var command = new CreateSensitiveWordCommand("TRUNCATE");
             var expectedId = Guid.NewGuid();
-            _mockRepository.Setup(r => r.ExistsAsync("SELECT")).ReturnsAsync(false);
-            _mockRepository.Setup(r => r.CreateAsync(It.IsAny<SensitiveWord>())).ReturnsAsync(expectedId);
+
+            _mockRepo.Setup(r => r.CreateAsync(It.IsAny<SensitiveWord>())).ReturnsAsync(expectedId);
+            _mockStats.Setup(s => s.IncrementAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
             var result = await _handler.HandleAsync(command);
 
             Assert.Equal(expectedId, result);
-            _mockRepository.Verify(r => r.CreateAsync(It.IsAny<SensitiveWord>()), Times.Once);
+            _mockRepo.Verify(r => r.CreateAsync(It.Is<SensitiveWord>(w => w.Word == "TRUNCATE")), Times.Once);
+            _mockStats.Verify(s => s.IncrementAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
         public async Task HandleAsync_WithExistingWord_ThrowsInvalidOperationException()
         {
             var command = new CreateSensitiveWordCommand("SELECT");
-            _mockRepository.Setup(r => r.ExistsAsync("SELECT")).ReturnsAsync(true);
+            _mockRepo.Setup(r => r.ExistsAsync("SELECT")).ReturnsAsync(true);
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _handler.HandleAsync(command));
-            _mockRepository.Verify(r => r.CreateAsync(It.IsAny<SensitiveWord>()), Times.Never);
+            _mockRepo.Verify(r => r.CreateAsync(It.IsAny<SensitiveWord>()), Times.Never);
         }
 
         [Fact]
         public async Task HandleAsync_WithNullCommand_ThrowsArgumentNullException()
         {
             await Assert.ThrowsAsync<ArgumentNullException>(() => _handler.HandleAsync(null!));
+        }
+
+        [Fact]
+        public async Task HandleAsync_WhenCreateFails_ThrowsInvalidOperationException()
+        {
+            var command = new CreateSensitiveWordCommand("TRUNCATE");
+
+            _mockRepo.Setup(r => r.CreateAsync(It.IsAny<SensitiveWord>())).ThrowsAsync(new Exception("db error"));
+
+            await Assert.ThrowsAsync<Exception>(() => _handler.HandleAsync(command));
+            _mockStats.Verify(s => s.IncrementAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
         }
     }
 }
