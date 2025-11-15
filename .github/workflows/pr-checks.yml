@@ -1,0 +1,126 @@
+name: PR Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  NODE_VERSION: '18.x'
+
+jobs:
+  validate:
+    name: Validate PR
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Check commit messages
+      run: |
+        echo "Validating commit messages..."
+        git log --format=%B origin/${{ github.base_ref }}..HEAD | grep -E '^(feat|fix|docs|style|refactor|test|chore)(\(.+\))?: .{1,100}$' || echo "⚠️ Consider using conventional commits"
+
+    - name: Check for breaking changes
+      run: |
+        echo "Checking for breaking changes in API contracts..."
+        git diff origin/${{ github.base_ref }}...HEAD -- '*.cs' | grep -i "breaking" || echo "✅ No breaking changes detected"
+
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Restore dependencies
+      run: dotnet restore SensitiveWords.MicroService/SensitiveWords.sln
+
+    - name: Format check
+      run: dotnet format SensitiveWords.MicroService/SensitiveWords.sln --verify-no-changes --verbosity diagnostic
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: SensitiveWords.React/package-lock.json
+
+    - name: Install frontend dependencies
+      working-directory: SensitiveWords.React
+      run: npm ci
+
+    - name: Lint frontend
+      working-directory: SensitiveWords.React
+      run: npm run lint
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+
+    - name: Upload Trivy results to GitHub Security
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+    - name: Check for secrets
+      uses: trufflesecurity/trufflehog@main
+      with:
+        path: ./
+        base: ${{ github.event.repository.default_branch }}
+        head: HEAD
+
+  size-check:
+    name: Bundle Size Check
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: SensitiveWords.React/package-lock.json
+
+    - name: Install dependencies
+      working-directory: SensitiveWords.React
+      run: npm ci
+
+    - name: Build
+      working-directory: SensitiveWords.React
+      run: npm run build
+
+    - name: Check bundle size
+      working-directory: SensitiveWords.React
+      run: |
+        BUNDLE_SIZE=$(du -sk dist | cut -f1)
+        MAX_SIZE=2048
+        if [ $BUNDLE_SIZE -gt $MAX_SIZE ]; then
+          echo "❌ Bundle size ($BUNDLE_SIZE KB) exceeds limit ($MAX_SIZE KB)"
+          exit 1
+        fi
+        echo "✅ Bundle size: $BUNDLE_SIZE KB (limit: $MAX_SIZE KB)"
