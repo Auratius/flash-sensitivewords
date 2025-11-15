@@ -25,10 +25,10 @@ jobs:
         dotnet-version: ${{ env.DOTNET_VERSION }}
 
     - name: Restore dependencies
-      run: dotnet restore SensitiveWords.MicroService/SensitiveWords.sln
+      run: dotnet restore SensitiveWords.sln
 
     - name: Build
-      run: dotnet build SensitiveWords.MicroService/SensitiveWords.sln --configuration Release --no-restore
+      run: dotnet build SensitiveWords.sln --configuration Release --no-restore
 
     - name: Setup SQL Server
       uses: potatoqualitee/mssqlsuite@v1.7
@@ -41,10 +41,10 @@ jobs:
         sqlcmd -S localhost -U sa -P 'YourStrong@Passw0rd' -d SensitiveWordsDB -i SensitiveWords.MicroService/Database/schema.sql
 
     - name: Run unit tests
-      run: dotnet test SensitiveWords.MicroService/SensitiveWords.sln --configuration Release --no-build --filter "Category=Unit" --verbosity normal
+      run: dotnet test SensitiveWords.sln --configuration Release --no-build --filter "Category=Unit" --verbosity normal
 
     - name: Run integration tests
-      run: dotnet test SensitiveWords.MicroService/SensitiveWords.sln --configuration Release --no-build --filter "Category=Integration" --verbosity normal
+      run: dotnet test SensitiveWords.sln --configuration Release --no-build --filter "Category=Integration" --verbosity normal
       env:
         ConnectionStrings__DefaultConnection: "Server=localhost;Database=SensitiveWordsDB;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True;"
 
@@ -117,8 +117,8 @@ jobs:
 
     - name: Restore and build
       run: |
-        dotnet restore SensitiveWords.MicroService/SensitiveWords.sln
-        dotnet build SensitiveWords.MicroService/SensitiveWords.sln --configuration Release --no-restore
+        dotnet restore SensitiveWords.sln
+        dotnet build SensitiveWords.sln --configuration Release --no-restore
 
     - name: Setup SQL Server
       uses: potatoqualitee/mssqlsuite@v1.7
@@ -132,7 +132,7 @@ jobs:
 
     - name: Run all tests with coverage
       run: |
-        dotnet test SensitiveWords.MicroService/SensitiveWords.sln \
+        dotnet test SensitiveWords.sln \
           --configuration Release \
           --no-build \
           /p:CollectCoverage=true \
