@@ -238,8 +238,10 @@ Umbraco_Client/
 # Node.js / npm
 node_modules/
 npm-debug.log
-package-lock.json
 yarn.lock
+# Ignore package-lock.json except in SensitiveWords.React (needed for Docker builds)
+package-lock.json
+!SensitiveWords.React/package-lock.json
 
 # Misc
 *.exe

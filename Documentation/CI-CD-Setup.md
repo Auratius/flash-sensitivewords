@@ -301,9 +301,26 @@ ConnectionStrings__DefaultConnection: "Server=localhost;Database=SensitiveWordsD
 
 ### Docker Build Errors
 
-The Dockerfile project references must match actual `.csproj` file names:
+**Backend Dockerfile Issues:**
+- Project references must match actual `.csproj` file names
 - Use `Flash.SensitiveWords.*` (not `Flash.SanitizeWords.*`)
 - Ensure all 4 projects are copied: API, Application, Infrastructure, Domain
+
+**Frontend Dockerfile Issues:**
+- `npm ci` requires `package-lock.json` to be committed to git
+- Check `.gitignore` isn't excluding `package-lock.json`
+- Don't use wildcard `package-lock.json*` - require it explicitly
+
+**Common Error:**
+```
+npm error The `npm ci` command can only install with an existing package-lock.json
+```
+
+**Fix:** Ensure `package-lock.json` is tracked in git:
+```bash
+git add -f SensitiveWords.React/package-lock.json
+git commit -m "Add package-lock.json for Docker builds"
+```
 
 ### Docker Build Failures
 
