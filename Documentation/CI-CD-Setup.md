@@ -292,12 +292,18 @@ If integration tests fail with connection errors:
 
 1. Check SQL Server is running in workflow
 2. Verify connection string format
-3. Ensure database schema is created before tests
+3. Ensure all database scripts are executed in order (01-06)
 
 **Fix:** Update connection string in `ci.yml`:
 ```yaml
 ConnectionStrings__DefaultConnection: "Server=localhost;Database=SensitiveWordsDB;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True;"
 ```
+
+### Docker Build Errors
+
+The Dockerfile project references must match actual `.csproj` file names:
+- Use `Flash.SensitiveWords.*` (not `Flash.SanitizeWords.*`)
+- Ensure all 4 projects are copied: API, Application, Infrastructure, Domain
 
 ### Docker Build Failures
 

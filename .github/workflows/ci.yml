@@ -37,8 +37,12 @@ jobs:
 
     - name: Create test database
       run: |
-        sqlcmd -S localhost -U sa -P 'YourStrong@Passw0rd' -Q "CREATE DATABASE SensitiveWordsDB;"
-        sqlcmd -S localhost -U sa -P 'YourStrong@Passw0rd' -d SensitiveWordsDB -i SensitiveWords.MicroService/Database/schema.sql
+        sqlcmd -S localhost -U sa -P 'YourStrong@Passw0rd' -i SensitiveWords.MicroService/Database/Scripts/01_CreateDatabase.sql
+        sqlcmd -S localhost -U sa -P 'YourStrong@Passw0rd' -d SensitiveWordsDB -i SensitiveWords.MicroService/Database/Scripts/02_CreateTables.sql
+        sqlcmd -S localhost -U sa -P 'YourStrong@Passw0rd' -d SensitiveWordsDB -i SensitiveWords.MicroService/Database/Scripts/03_SeedData.sql
+        sqlcmd -S localhost -U sa -P 'YourStrong@Passw0rd' -d SensitiveWordsDB -i SensitiveWords.MicroService/Database/Scripts/04_CreateStoredProcedures.sql
+        sqlcmd -S localhost -U sa -P 'YourStrong@Passw0rd' -d SensitiveWordsDB -i SensitiveWords.MicroService/Database/Scripts/05_CreateOperationStatsTable.sql
+        sqlcmd -S localhost -U sa -P 'YourStrong@Passw0rd' -d SensitiveWordsDB -i SensitiveWords.MicroService/Database/Scripts/06_CreateOperationStatsStoredProcs.sql
 
     - name: Run unit tests
       run: dotnet test SensitiveWords.sln --configuration Release --no-build --filter "Category=Unit" --verbosity normal
@@ -50,7 +54,7 @@ jobs:
 
     - name: Generate code coverage
       run: |
-        dotnet test SensitiveWords.MicroService/SensitiveWords.sln \
+        dotnet test SensitiveWords.sln \
           --configuration Release \
           --no-build \
           --collect:"XPlat Code Coverage" \
@@ -127,8 +131,12 @@ jobs:
 
     - name: Create test database
       run: |
-        sqlcmd -S localhost -U sa -P 'YourStrong@Passw0rd' -Q "CREATE DATABASE SensitiveWordsDB;"
-        sqlcmd -S localhost -U sa -P 'YourStrong@Passw0rd' -d SensitiveWordsDB -i SensitiveWords.MicroService/Database/schema.sql
+        sqlcmd -S localhost -U sa -P 'YourStrong@Passw0rd' -i SensitiveWords.MicroService/Database/Scripts/01_CreateDatabase.sql
+        sqlcmd -S localhost -U sa -P 'YourStrong@Passw0rd' -d SensitiveWordsDB -i SensitiveWords.MicroService/Database/Scripts/02_CreateTables.sql
+        sqlcmd -S localhost -U sa -P 'YourStrong@Passw0rd' -d SensitiveWordsDB -i SensitiveWords.MicroService/Database/Scripts/03_SeedData.sql
+        sqlcmd -S localhost -U sa -P 'YourStrong@Passw0rd' -d SensitiveWordsDB -i SensitiveWords.MicroService/Database/Scripts/04_CreateStoredProcedures.sql
+        sqlcmd -S localhost -U sa -P 'YourStrong@Passw0rd' -d SensitiveWordsDB -i SensitiveWords.MicroService/Database/Scripts/05_CreateOperationStatsTable.sql
+        sqlcmd -S localhost -U sa -P 'YourStrong@Passw0rd' -d SensitiveWordsDB -i SensitiveWords.MicroService/Database/Scripts/06_CreateOperationStatsStoredProcs.sql
 
     - name: Run all tests with coverage
       run: |
